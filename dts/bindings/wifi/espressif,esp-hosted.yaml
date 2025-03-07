@@ -8,10 +8,6 @@ compatible: "espressif,esp-hosted"
 include: spi-device.yaml
 
 properties:
-  cs-gpios:
-    type: phandle-array
-    required: true
-
   reset-gpios:
     type: phandle-array
     required: true
