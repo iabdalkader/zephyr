@@ -360,6 +360,8 @@ static int run_queries(void)
 
 int main(void)
 {
+    //k_sleep(K_FOREVER);
+
 	int iterations = CONFIG_NET_SAMPLE_SEND_ITERATIONS;
 	int i = 0;
 	int ret = 0;
@@ -368,18 +370,18 @@ int main(void)
 		ret = run_queries();
 		if (ret < 0) {
 			ret = 1;
-			break;
+			//break;
 		}
 
 		if (iterations > 0) {
 			i++;
 			if (i >= iterations) {
 				ret = 0;
-				break;
+				//break;
 			}
 		} else {
 			ret = 0;
-			break;
+			//break;
 		}
 	}
 
