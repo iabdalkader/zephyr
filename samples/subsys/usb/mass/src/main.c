@@ -36,7 +36,7 @@ FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(storage);
 #error No supported disk driver enabled
 #endif
 
-#define STORAGE_PARTITION		storage_partition
+#define STORAGE_PARTITION		storage_partition1
 #define STORAGE_PARTITION_ID		FIXED_PARTITION_ID(STORAGE_PARTITION)
 
 static struct fs_mount_t fs_mnt;
@@ -120,7 +120,7 @@ static int mount_app_fs(struct fs_mount_t *mnt)
 	} else if (IS_ENABLED(CONFIG_DISK_DRIVER_SDMMC)) {
 		mnt->mnt_point = "/SD:";
 	} else {
-		mnt->mnt_point = "/NAND:";
+		mnt->mnt_point = "/NAND1:";
 	}
 
 #elif CONFIG_FILE_SYSTEM_LITTLEFS
@@ -228,3 +228,13 @@ int main(void)
 	LOG_INF("The device is put in USB mass storage mode.\n");
 	return 0;
 }
+
+#if defined(CONFIG_FS_FATFS_MULTI_PARTITION)
+
+PARTITION VolToPart[] = {
+    {0, 0},
+    {1, 1},
+    {2, 2}
+};
+
+#endif

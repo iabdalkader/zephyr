@@ -1,0 +1,17 @@
+/ {
+	part0 {
+		compatible = "zephyr,flash-disk";
+		partition = <&storage_partition0>;
+		disk-name = "NAND0";
+		cache-size = <4096>;
+        sector-size = <4096>;
+	};
+
+	part1 {
+		compatible = "zephyr,flash-disk";
+		partition = <&storage_partition1>;
+		disk-name = "NAND1";
+		cache-size = <4096>;
+        sector-size = <4096>;
+	};
+};
