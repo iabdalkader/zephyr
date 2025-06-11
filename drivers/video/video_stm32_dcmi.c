@@ -155,8 +155,13 @@ static int stm32_dma_init(const struct device *dev)
 	hdma.Init.MemDataAlignment	= DMA_MDATAALIGN_WORD;
 	hdma.Init.Mode			= DMA_CIRCULAR;
 	hdma.Init.Priority		= DMA_PRIORITY_HIGH;
-#if defined(CONFIG_SOC_SERIES_STM32F7X)
-	hdma.Init.FIFOMode		= DMA_FIFOMODE_DISABLE;
+#if defined(CONFIG_SOC_SERIES_STM32F4X) || \
+	defined(CONFIG_SOC_SERIES_STM32F7X) || \
+	defined(CONFIG_SOC_SERIES_STM32H7X)
+	hdma.Init.FIFOMode      = DMA_FIFOMODE_ENABLE;
+	hdma.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+	hdma.Init.MemBurst      = DMA_MBURST_INC4;
+	hdma.Init.PeriphBurst   = DMA_PBURST_SINGLE;
 #endif
 
 #if defined(CONFIG_SOC_SERIES_STM32F7X)
