@@ -45,6 +45,7 @@ enum llext_mem {
 	LLEXT_MEM_TEXT,         /**< Executable code */
 	LLEXT_MEM_DATA,         /**< Initialized data */
 	LLEXT_MEM_RODATA,       /**< Read-only data */
+	LLEXT_MEM_RODATA_NO_RELOC,  /**< Large read-only constants kept in flash */
 	LLEXT_MEM_BSS,          /**< Uninitialized data */
 	LLEXT_MEM_EXPORT,       /**< Exported symbol table */
 	LLEXT_MEM_SYMTAB,       /**< Symbol table */

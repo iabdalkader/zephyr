@@ -232,6 +232,25 @@ static int llext_map_sections(struct llext_loader *ldr, struct llext *ext,
 {
 	int i, j;
 	const char *name;
+	bool sect_has_relocs[ext->sect_cnt];
+
+	/*
+	 * Mark sections that have relocations targeting them. This allows us to separate
+     * RODATA sections with/without relocations and place relocation-free sections in
+     * RODATA_NO_RELOC region to save RAM.
+	 */
+	memset(sect_has_relocs, 0, sizeof(sect_has_relocs));
+
+	for (i = 0; i < ext->sect_cnt; ++i) {
+		elf_shdr_t *shdr = ext->sect_hdrs + i;
+
+		if (shdr->sh_type == SHT_REL || shdr->sh_type == SHT_RELA) {
+			/* Mark the target section as having relocations */
+			if (shdr->sh_info < ext->sect_cnt) {
+				sect_has_relocs[shdr->sh_info] = true;
+			}
+		}
+	}
 
 	for (i = 0; i < ext->sect_cnt; ++i) {
 		elf_shdr_t *shdr = ext->sect_hdrs + i;
@@ -256,8 +275,12 @@ static int llext_map_sections(struct llext_loader *ldr, struct llext *ext,
 				mem_idx = LLEXT_MEM_TEXT;
 			} else if (shdr->sh_flags & SHF_WRITE) {
 				mem_idx = LLEXT_MEM_DATA;
-			} else {
+			} else if (sect_has_relocs[i]) {
+				/* Has relocations - copy to RAM */
 				mem_idx = LLEXT_MEM_RODATA;
+			} else {
+				/* No relocations - can stay in flash */
+				mem_idx = LLEXT_MEM_RODATA_NO_RELOC;
 			}
 			break;
 		case SHT_PREINIT_ARRAY:
