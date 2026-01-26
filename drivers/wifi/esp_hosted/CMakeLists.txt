@@ -13,10 +13,6 @@ zephyr_library_sources(
   esp_hosted_wifi.c
 )
 
-zephyr_nanopb_sources(esp_hosted
-  esp_hosted_proto.pb
-)
-
 zephyr_include_directories(
   ./
 )
@@ -24,4 +20,11 @@ zephyr_include_directories(
 zephyr_compile_definitions(
     PB_ENABLE_MALLOC=1
 )
+
+if(CONFIG_WIFI_ESP_HOSTED_LEGACY)
+  zephyr_nanopb_sources(esp_hosted esp_hosted_legacy.pb)
+else()
+  zephyr_nanopb_sources(esp_hosted esp_hosted_latest.pb)
+endif()
+
 endif()
