@@ -737,11 +737,8 @@ static int stm32_ltdc_init(const struct device *dev)
 		}
 	}
 
-	/* reset LTDC peripheral */
+	/* Reset LTDC peripheral */
 	(void)reset_line_toggle_dt(&config->reset);
-
-	data->current_pixel_format = DISPLAY_INIT_PIXEL_FORMAT;
-	data->current_pixel_size = STM32_LTDC_INIT_PIXEL_SIZE;
 
 	k_sem_init(&data->sem, 0, 1);
 	k_sem_init(&data->cb_sem, 1, 1);
@@ -954,6 +951,8 @@ static DEVICE_API(display, stm32_ltdc_display_api) = {
 		irq_enable(DT_INST_IRQN(inst));							\
 	}											\
 	static struct display_stm32_ltdc_data stm32_ltdc_data_##inst = {			\
+		.current_pixel_format = DISPLAY_INIT_PIXEL_FORMAT,				\
+		.current_pixel_size = STM32_LTDC_INIT_PIXEL_SIZE,				\
 		.frame_buffer = STM32_LTDC_FRAME_BUFFER_ADDR(inst),				\
 		.frame_buffer_len = STM32_LTDC_FRAME_BUFFER_LEN(inst),				\
 		.front_buf = STM32_LTDC_FRAME_BUFFER_ADDR(inst),				\
