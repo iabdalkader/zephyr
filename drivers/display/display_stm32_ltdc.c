@@ -83,6 +83,7 @@ struct display_stm32_ltdc_data {
 	LTDC_HandleTypeDef hltdc;
 	struct display_timing timing;
 	bool started;
+	bool blanked;
 	enum display_pixel_format current_pixel_format;
 	uint8_t current_pixel_size;
 	uint8_t *frame_buffer;
@@ -482,6 +483,7 @@ static void *stm32_ltdc_get_framebuffer(const struct device *dev)
 
 static int stm32_ltdc_display_blanking_off(const struct device *dev)
 {
+	struct display_stm32_ltdc_data *data = dev->data;
 	const struct display_stm32_ltdc_config *config = dev->config;
 	const struct device *display_dev = config->display_controller;
 	int err;
@@ -500,6 +502,7 @@ static int stm32_ltdc_display_blanking_off(const struct device *dev)
 
 	/* Panel controller's phandle is not passed to LTDC in devicetree */
 	if (!display_dev) {
+		data->blanked = false;
 		return 0;
 	}
 
@@ -508,12 +511,18 @@ static int stm32_ltdc_display_blanking_off(const struct device *dev)
 		return -ENODEV;
 	}
 
-	return display_blanking_off(display_dev);
+	err = display_blanking_off(display_dev);
+	if (err == 0) {
+		data->blanked = false;
+	}
+
+	return err;
 }
 
 static int stm32_ltdc_display_blanking_on(const struct device *dev)
 {
 	const struct display_stm32_ltdc_config *config = dev->config;
+	struct display_stm32_ltdc_data *data = dev->data;
 	const struct device *display_dev = config->display_controller;
 	int err;
 
@@ -531,6 +540,7 @@ static int stm32_ltdc_display_blanking_on(const struct device *dev)
 
 	/* Panel controller's phandle is not passed to LTDC in devicetree */
 	if (!display_dev) {
+		data->blanked = true;
 		return 0;
 	}
 
@@ -539,7 +549,12 @@ static int stm32_ltdc_display_blanking_on(const struct device *dev)
 		return -ENODEV;
 	}
 
-	return display_blanking_on(display_dev);
+	err = display_blanking_on(display_dev);
+	if (err == 0) {
+		data->blanked = true;
+	}
+
+	return err;
 }
 
 static int stm32_ltdc_display_register_event_cb(const struct device *dev, display_event_cb_t cb,
@@ -700,9 +715,14 @@ static int stm32_ltdc_init(const struct device *dev)
 		}
 	}
 
-	/* Configure and set display backlight control GPIO */
+	/* Configure and set display backlight control GPIO. Note: PM suspend
+	 * turns off the backlight. On PM resume, which calls init, restore
+	 * the backlight to its previous state.
+	 */
 	if (config->bl_ctrl_gpio.port) {
-		err = gpio_pin_configure_dt(&config->bl_ctrl_gpio, GPIO_OUTPUT_INACTIVE);
+		gpio_flags_t bl_flags = data->blanked ? GPIO_OUTPUT_INACTIVE : GPIO_OUTPUT_ACTIVE;
+
+		err = gpio_pin_configure_dt(&config->bl_ctrl_gpio, bl_flags);
 		if (err < 0) {
 			LOG_ERR("Configuration of display backlight control GPIO failed");
 			return err;
@@ -951,6 +971,7 @@ static DEVICE_API(display, stm32_ltdc_display_api) = {
 		irq_enable(DT_INST_IRQN(inst));							\
 	}											\
 	static struct display_stm32_ltdc_data stm32_ltdc_data_##inst = {			\
+		.blanked = true,								\
 		.current_pixel_format = DISPLAY_INIT_PIXEL_FORMAT,				\
 		.current_pixel_size = STM32_LTDC_INIT_PIXEL_SIZE,				\
 		.frame_buffer = STM32_LTDC_FRAME_BUFFER_ADDR(inst),				\
